@@ -1,0 +1,11 @@
+{
+  "name": "k-erp-overview",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "reconcile": "node scripts/reconcile.mjs"
+  },
+  "dependencies": {
+    "pg": "^8.13.1"
+  }
+}

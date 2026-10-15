@@ -1,0 +1,40 @@
+# Render Blueprint for the two backend services (optional: the same settings can be
+# entered by hand in the Render dashboard). Secret values use `sync: false`, so they are
+# typed in the dashboard and never stored here. Check field names against Render's
+# Blueprint spec before first use.
+services:
+  - type: web
+    name: k-erp-accounting
+    runtime: node
+    repo: https://github.com/kingly5556/Accounting-Backend
+    branch: main
+    plan: free
+    region: singapore
+    buildCommand: git clone --depth 1 https://github.com/kingly5556/Accounting-Frontend.git frontend && (cd frontend && npm ci --include=dev && npm run build) && npm ci --include=dev && npx prisma generate && npm run build && npx prisma migrate deploy
+    startCommand: node dist/server.js
+    healthCheckPath: /health
+    envVars:
+      - { key: NODE_VERSION, value: "22" }
+      - { key: FRONTEND_DIST, value: frontend/dist }
+      - { key: JWT_SECRET, sync: false }
+      - { key: ACCOUNTING_SERVICE_KEY, sync: false }
+      - { key: DATABASE_URL, sync: false }
+
+  - type: web
+    name: k-erp-stock
+    runtime: node
+    repo: https://github.com/kingly5556/Stock-Purchase-Backend
+    branch: main
+    plan: free
+    region: singapore
+    buildCommand: git clone --depth 1 https://github.com/kingly5556/Stock-Purchase-Frontend.git frontend && (cd frontend && npm ci --include=dev && npm run build) && npm ci --include=dev && npx prisma generate && npm run build && npx prisma migrate deploy
+    startCommand: node dist/server.js
+    healthCheckPath: /health
+    envVars:
+      - { key: NODE_VERSION, value: "22" }
+      - { key: FRONTEND_DIST, value: frontend/dist }
+      - { key: APPROVAL_THRESHOLD_SATANG, value: "5000000" }
+      - { key: JWT_SECRET, sync: false }
+      - { key: DATABASE_URL, sync: false }
+      - { key: ACCOUNTING_URL, sync: false }
+      - { key: ACCOUNTING_SERVICE_KEY, sync: false }

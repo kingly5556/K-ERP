@@ -1,0 +1,73 @@
+name: Reset demo data
+
+# Every night the public demo goes back to a known state: both databases are reset and
+# re-seeded, both services are woken up, the outbox is drained and the inventory is
+# reconciled against GL account 1300. A failure e-mails the repository owner.
+on:
+  schedule:
+    - cron: "0 20 * * *" # 20:00 UTC = 03:00 Asia/Bangkok
+  workflow_dispatch: {}
+
+concurrency:
+  group: reset-demo
+  cancel-in-progress: false
+
+jobs:
+  reset:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with: { repository: kingly5556/Accounting-Backend, path: accounting }
+      - uses: actions/checkout@v4
+        with: { repository: kingly5556/Stock-Purchase-Backend, path: stock }
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+
+      - name: Reset + seed Accounting
+        working-directory: accounting
+        env:
+          DATABASE_URL: ${{ secrets.ACCOUNTING_DATABASE_URL }}
+        run: |
+          npm ci
+          npx prisma migrate reset --force --skip-seed
+          npm run prisma:seed
+
+      - name: Reset + seed Stock (through the service layer)
+        working-directory: stock
+        env:
+          DATABASE_URL: ${{ secrets.STOCK_DATABASE_URL }}
+        run: |
+          npm ci
+          npx prisma migrate reset --force --skip-seed
+          npm run demo:seed
+
+      - name: Wake both services
+        env:
+          ACC: ${{ secrets.ACCOUNTING_URL }}
+          STK: ${{ secrets.STOCK_URL }}
+        run: |
+          for url in "$ACC" "$STK"; do
+            up=0
+            for i in $(seq 1 18); do
+              if curl -fsS --max-time 20 "$url/health?deep=1" | grep -q '"ok":true'; then up=1; break; fi
+              echo "waiting for $url ($i/18)"; sleep 10
+            done
+            [ "$up" = 1 ] || { echo "$url did not wake up"; exit 1; }
+          done
+
+      - name: Wait for the outbox to drain
+        working-directory: stock
+        env:
+          DATABASE_URL: ${{ secrets.STOCK_DATABASE_URL }}
+          WAIT_MS: "240000"
+        run: npm run outbox:wait
+
+      - name: Reconcile inventory (stock value == GL 1300)
+        env:
+          STOCK_DATABASE_URL: ${{ secrets.STOCK_DATABASE_URL }}
+          ACCOUNTING_DATABASE_URL: ${{ secrets.ACCOUNTING_DATABASE_URL }}
+        run: |
+          npm install --no-audit --no-fund
+          node scripts/reconcile.mjs
