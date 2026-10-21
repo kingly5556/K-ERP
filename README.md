@@ -68,6 +68,8 @@ worker delivers the message with retries and backoff.
 - **Gap-free document numbers under load.** PO numbers come from a counter row updated with `INSERT … ON CONFLICT DO UPDATE … RETURNING` inside the same transaction; a test fires 20 concurrent creates and gets 1–20 with no duplicates.
 - **Stock value reconciles with the ledger every night.** The reset job compares inventory value in Stock with GL account 1300 and fails loudly if they differ ([`scripts/reconcile.mjs`](scripts/reconcile.mjs)).
 
+Why each of these was chosen, and what it costs, is written up as [Architecture Decision Records](docs/adr/README.md).
+
 ## Tests & results
 
 | What | Result | When |
@@ -124,6 +126,7 @@ explain why it is built that way.
 | `.github/workflows/reset-demo.yml` | Nightly reset of the public demo: reset + seed both databases, wake both services, drain the outbox, reconcile |
 | `scripts/reconcile.mjs` | Checks that the stock value in Stock equals GL account 1300 in Accounting |
 | `render.yaml` | Render Blueprint for the two backend services |
+| `docs/adr/` | Architecture Decision Records (7) |
 | `docs/images/` | Screenshots used in the READMEs |
 
 ## About me
