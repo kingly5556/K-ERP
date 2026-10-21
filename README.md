@@ -1,6 +1,6 @@
 # K-ERP — a modular ERP: Stock & Purchasing + Double-entry General Ledger
 
-**[Live demo](https://k-erp-hub.vercel.app)** · [Source repositories](#modules) · [How I built this](#how-i-built-this) · [Deployment report](#tests--results)
+**[Live demo](https://k-erp-hub.vercel.app)** · [Source repositories](#modules) · [How I built this](#how-i-built-this) · Technical reports: [Stock (PDF)](docs/KERP-STK-TR-001_Stock-Technical-Report_EN.pdf), [Accounting (PDF)](docs/KERP-ACC-TR-001_Accounting-Technical-Report_EN.pdf)
 
 [![Reset demo data](https://github.com/kingly5556/K-ERP/actions/workflows/reset-demo.yml/badge.svg)](https://github.com/kingly5556/K-ERP/actions/workflows/reset-demo.yml)
 
@@ -129,6 +129,7 @@ explain why it is built that way.
 | `scripts/reconcile.mjs` | Checks that the stock value in Stock equals GL account 1300 in Accounting |
 | `render.yaml` | Render Blueprint for the two backend services |
 | `docs/adr/` | Architecture Decision Records (7) |
+| `docs/*.pdf` | Technical reports: requirements, architecture, design, tests and quality evaluation for each module |
 | `docs/images/` | Screenshots used in the READMEs |
 
 ## About me
