@@ -129,4 +129,4 @@ explain why it is built that way.
 ## About me
 
 Kongkat Thanalertrungroj — new-grad developer looking for a Junior Backend / Full-stack role.
-Portfolio: [king-profile.vercel.app](https://king-profile.vercel.app) · GitHub: [@kingly5556](https://github.com/kingly5556)
+Portfolio: [kongkat.xyz](https://kongkat.xyz) · GitHub: [@kingly5556](https://github.com/kingly5556)
