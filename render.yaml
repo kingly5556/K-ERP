@@ -10,7 +10,7 @@ services:
     branch: main
     plan: free
     region: singapore
-    buildCommand: git clone --depth 1 https://github.com/kingly5556/Accounting-Frontend.git frontend && (cd frontend && npm ci --include=dev && npm run build) && npm ci --include=dev && npx prisma generate && npm run build && npx prisma migrate deploy
+    buildCommand: rm -rf frontend && git clone --depth 1 https://github.com/kingly5556/Accounting-Frontend.git frontend && (cd frontend && npm ci --include=dev && npm run build) && npm ci --include=dev && npx prisma generate && npm run build && npx prisma migrate deploy
     startCommand: node dist/server.js
     healthCheckPath: /health
     envVars:
@@ -27,7 +27,7 @@ services:
     branch: main
     plan: free
     region: singapore
-    buildCommand: git clone --depth 1 https://github.com/kingly5556/Stock-Purchase-Frontend.git frontend && (cd frontend && npm ci --include=dev && npm run build) && npm ci --include=dev && npx prisma generate && npm run build && npx prisma migrate deploy
+    buildCommand: rm -rf frontend && git clone --depth 1 https://github.com/kingly5556/Stock-Purchase-Frontend.git frontend && (cd frontend && npm ci --include=dev && npm run build) && npm ci --include=dev && npx prisma generate && npm run build && npx prisma migrate deploy
     startCommand: node dist/server.js
     healthCheckPath: /health
     envVars:
