@@ -62,7 +62,7 @@ worker delivers the message with retries and backoff.
 ## Engineering highlights
 
 - **No lost or duplicated postings.** Transactional outbox in Stock ([`src/shared/outbox`](https://github.com/kingly5556/Stock-Purchase-Backend/tree/main/src/shared/outbox)) plus an idempotency key `(sourceModule, sourceType, sourceId)` in Accounting. Verified on production by suspending Accounting, receiving goods, and resuming: the entry was posted once, on the 6th retry.
-- **Stock never goes negative under concurrency.** Every stock movement locks the product row (`SELECT … FOR UPDATE`) before writing to an append-only ledger ([`inventory.service.ts`](https://github.com/kingly5556/Stock-Purchase-Backend/blob/main/src/modules/inventory/inventory.service.ts)).
+- **Stock never goes negative under concurrency.** Every stock movement locks the product row (`SELECT … FOR UPDATE`) before writing to an append-only ledger ([`inventory.service.ts`](https://github.com/kingly5556/Stock-Purchase-Backend/blob/main/src/modules/inventory/inventory.service.ts)). Receipts lock the purchase order and status changes are compare-and-set; each rule has a concurrency test that fails when the protection is removed ([results](https://github.com/kingly5556/Stock-Purchase-Backend#concurrency-results)).
 - **Accounting rules enforced twice.** In the application and in PostgreSQL itself: a `CHECK` that a line is debit *or* credit, and triggers that refuse any change to a posted entry, even from raw SQL ([migration](https://github.com/kingly5556/Accounting-Backend/blob/main/prisma/migrations/20261010084125_init/migration.sql)).
 - **Money as integers.** All amounts are `BigInt` satang (1/100 baht), never floats; JSON carries them as strings.
 - **Gap-free document numbers under load.** PO numbers come from a counter row updated with `INSERT … ON CONFLICT DO UPDATE … RETURNING` inside the same transaction; a test fires 20 concurrent creates and gets 1–20 with no duplicates.
@@ -75,7 +75,9 @@ Why each of these was chosen, and what it costs, is written up as [Architecture 
 | What | Result | When |
 |---|---|---|
 | Accounting unit + integration tests (real PostgreSQL) | 101 / 101 pass | 15 Oct 2026 |
-| Stock unit + integration tests (incl. concurrent PO numbering) | 28 / 28 pass | 15 Oct 2026 |
+| Stock unit + integration tests (incl. 4 concurrency tests on real PostgreSQL) | 31 / 31 pass | 21 Oct 2026 |
+| Same concurrency tests with the row locks removed (negative control) | fail as expected: 32 of 50 issues succeed against 30 in stock; 15 received against 10 ordered | 21 Oct 2026 |
+| k6 load test: 50 users adjusting the same product for 30 s (GitHub runner) | 10,275 requests, 0% errors, p95 168 ms, ledger consistent | 21 Oct 2026 |
 | End-to-end across modules (outbox, outage + recovery, retries, reconciliation) | 23 / 23 pass | 15 Oct 2026 |
 | Role permissions through the hub (16 actions × 5 roles) | 80 / 80 as designed | 15 Oct 2026 |
 | Production smoke flow: PO 60,000 → approve → receive twice → two journal entries | pass, trial balance balanced | 21 Oct 2026 |
